@@ -9,24 +9,30 @@ import java.time.LocalDateTime
 @Entity
 @Table(
     name = "USERS",
-    uniqueConstraints = [UniqueConstraint(name = "uk_users_email", columnNames = ["email"])]
+    uniqueConstraints = [
+        UniqueConstraint(name = "uk_users_email", columnNames = ["email"]),
+        UniqueConstraint(name = "uk_users_nickname", columnNames = ["nickname"])
+    ],
 )
 class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var userId: Long? = null,
 
-    @Column(nullable = false, length = 30)
-    val email: String,
+    @Column(nullable = false, length = 30, updatable = false)
+    val email: String = "",
 
     @Column(nullable = false, length = 100)
-    val password: String,
+    val password: String = "",
 
     @Column(nullable = false, length = 10)
-    val name: String,
+    val name: String = "",
+
+    @Column(nullable = false, length = 10)
+    val nickname: String = "",
 
     @Column(nullable = false, length = 11)
-    val phone: String,
+    val phone: String = "",
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

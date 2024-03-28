@@ -5,9 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
+import java.util.ResourceBundle
 
+/**
+ * 회원가입을 위한 DTO
+ *
+ * @property _email 이메일 검증 절차
+ * @property _password 영문, 숫자, 특수문자를 포함한 8~20자리 검증
+ * @property _phone 01 로 시작하는 11자리 핸드폰 번호 검증
+ * @property _name
+ * @property _nickname
+ */
 class UserDtoRequest(
-    
+
     @field:NotBlank
     @field:Email
     @JsonProperty("email")
@@ -26,6 +36,10 @@ class UserDtoRequest(
     private val _name: String?,
 
     @field:NotBlank
+    @JsonProperty("name")
+    private val _nickname: String?,
+
+    @field:NotBlank
     @field:Pattern(
         regexp = "^01\\d{9}$",
         message = "핸드폰 번호를 다시 확인해주세요"
@@ -40,11 +54,13 @@ class UserDtoRequest(
     val name: String
         get() = _name!!
 
+    val nickname: String
+        get() = _nickname!!
+
     val email: String
         get() = _email!!
-
     val phone: String
         get() = _phone!!
 
-    fun toEntity(): User = User(email = email, password = password, name = name, phone = phone)
+    fun toEntity(): User = User(email = email, password = password, name = name, nickname = nickname, phone = phone)
 }
