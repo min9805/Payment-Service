@@ -1,18 +1,37 @@
 package com.example.pay.domain.user.service
 
-import com.example.pay.domain.user.dto.UserDtoRequest
+import com.example.pay.domain.user.dto.LoginReqDto
+import com.example.pay.domain.user.dto.UserSignupReqDto
+import com.example.pay.domain.user.dto.UserUpdateReqDto
 import com.example.pay.domain.user.entity.User
+import com.example.pay.domain.user.entity.UserRole
 import com.example.pay.domain.user.repository.UserRepository
+import com.example.pay.domain.user.repository.UserRoleRepository
+import com.example.pay.global.authority.JwtTokenProvider
+import com.example.pay.global.authority.TokenInfo
+import com.example.pay.global.dto.CustomUser
 import com.example.pay.global.exception.InvalidInputException
+import com.example.pay.global.status.Role
+import com.example.pay.global.status.UserType
+import jakarta.transaction.Transactional
+import org.antlr.v4.runtime.Token
 import org.springframework.context.MessageSource
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RequestBody
 import java.util.*
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val messageSource: MessageSource
+    private val userRoleRepository: UserRoleRepository,
+    private val authenticationManagerBuilder: AuthenticationManagerBuilder,
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val messageSource: MessageSource,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
     /**
@@ -20,12 +39,13 @@ class UserService(
      *
      * 닉네임 및 이메일 중복 여부 검사 후 save
      *
-     * @param userDtoRequest
+     * @param userSignupReqDto
      * @return message
      */
-    fun signUp(userDtoRequest: UserDtoRequest): String {
+    @Transactional
+    fun signUp(userSignupReqDto: UserSignupReqDto): String {
         // 이메일 중복 여부 검사
-        var user: User? = userRepository.findByEmail(userDtoRequest.email)
+        var user: User? = userRepository.findByEmail(userSignupReqDto.email)
         if (user != null) {
             throw InvalidInputException(
                 "email",
@@ -33,7 +53,7 @@ class UserService(
             )
         }
         // 닉네임 중복 여부 검사
-        user = userRepository.findByNickname(userDtoRequest.nickname)
+        user = userRepository.findByNickname(userSignupReqDto.nickname)
         if (user != null) {
             throw InvalidInputException(
                 "nickname",
@@ -41,8 +61,14 @@ class UserService(
             )
         }
 
-        user = userDtoRequest.toEntity()
+        user = userSignupReqDto.toEntity()
+        user.encodePassword(passwordEncoder)
+
         val savedUser = userRepository.save(user)
+
+        val memberRole: UserRole = UserRole(null, Role.MEMBER, savedUser)
+        userRoleRepository.save(memberRole)
+
         return messageSource.getMessage("user.service.signup.success", null, Locale.getDefault())
     }
 
@@ -52,6 +78,7 @@ class UserService(
      * @param email
      * @return boolean
      */
+    @Transactional
     fun emailCheck(email: String): Boolean {
         // 이메일 중복 여부 검사
         var user: User? = userRepository.findByEmail(email)
@@ -67,6 +94,7 @@ class UserService(
      * @param nickname
      * @return boolean
      */
+    @Transactional
     fun nicknameCheck(nickname: String): Boolean {
         // 닉네임 중복 여부 검사
         var user: User? = userRepository.findByNickname(nickname)
@@ -75,4 +103,48 @@ class UserService(
         }
         return true
     }
+
+    @Transactional
+    fun login(loginReqDto: LoginReqDto): TokenInfo {
+        val authenticationToken = UsernamePasswordAuthenticationToken(loginReqDto.email, loginReqDto.password)
+        val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
+
+        return jwtTokenProvider.createToken(authentication)
+    }
+
+    /**
+     * 유저 정보 업데이트
+     *
+     * JWT 내 정보로  User 엔티티 획득
+     * 해당 정보로
+     *
+     * @param userUpdateReqDto
+     * @return
+     */
+    @Transactional
+    fun updateUserInfo(userUpdateReqDto: UserUpdateReqDto): String {
+        // JWT 내 USER
+        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).userId
+        val user: User = userRepository.findByIdOrNull(userId) ?: throw InvalidInputException(
+            "id",
+            "회원번호(${userId})가 존재하지 않는 유저입니다."
+        )
+
+        user.update(userUpdateReqDto)
+
+        // 닉네임 중복 체크
+        val checkedUser: User? = userUpdateReqDto.nickname?.let { userRepository.findByNickname(it) }
+        if (checkedUser != null) {
+            throw InvalidInputException(
+                "nickname",
+                messageSource.getMessage("user.service.signup.fail.existNickname", null, Locale.getDefault())
+            )
+        }
+
+        userRepository.save(user)
+
+        return messageSource.getMessage("user.service.update.success", null, Locale.getDefault())
+
+    }
+
 }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
-import java.util.ResourceBundle
 
 /**
  * 회원가입을 위한 DTO
@@ -16,7 +15,7 @@ import java.util.ResourceBundle
  * @property _name
  * @property _nickname
  */
-class UserDtoRequest(
+class UserSignupReqDto(
 
     @field:NotBlank
     @field:Email
@@ -36,7 +35,7 @@ class UserDtoRequest(
     private val _name: String?,
 
     @field:NotBlank
-    @JsonProperty("name")
+    @JsonProperty("nickname")
     private val _nickname: String?,
 
     @field:NotBlank
@@ -64,3 +63,64 @@ class UserDtoRequest(
 
     fun toEntity(): User = User(email = email, password = password, name = name, nickname = nickname, phone = phone)
 }
+
+
+class LoginReqDto(
+    @field:NotBlank
+    @JsonProperty("email")
+    private val _email: String?,
+
+    @field:NotBlank
+    @JsonProperty("password")
+    private val _password: String?,
+) {
+    val email: String
+        get() = _email!!
+    val password: String
+        get() = _password!!
+}
+
+
+class UserUpdateReqDto(
+
+    @field:Pattern(
+        regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#\$%^&*])[a-zA-Z0-9!@#\$%^&*]{8,20}\$",
+        message = "영문, 숫자, 특수문자를 포함한 8~20자리로 입력해주세요"
+    )
+    @JsonProperty("password")
+    private val _password: String?,
+
+    @JsonProperty("nickname")
+    private val _nickname: String?,
+
+    @field:Pattern(
+        regexp = "^01\\d{9}$",
+        message = "핸드폰 번호를 다시 확인해주세요"
+    )
+    @JsonProperty("phone")
+    private val _phone: String?,
+
+    @JsonProperty("profileImg")
+    private val _profileImg: String?,
+
+    @JsonProperty("description")
+    private val _description: String?,
+
+    ) {
+
+    val password: String?
+        get() = _password
+
+    val nickname: String?
+        get() = _nickname
+
+    val phone: String?
+        get() = _phone
+
+    val profileImg: String?
+        get() = _profileImg
+
+    val description: String?
+        get() = _description
+}
+
