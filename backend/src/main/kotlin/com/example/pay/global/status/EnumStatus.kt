@@ -1,7 +1,6 @@
 package com.example.pay.global.status
 
 enum class UserType(val desc: String) {
-    NORMAL("일반"),
     POORLY_FED_CHILD("결식아동"),
     NATIONAL_MERIT("국가유공자")
 }
