@@ -22,14 +22,14 @@ class UserDtoTest : BehaviorSpec({
 
     Given("UserDtoRequest 를 사용할 때") {
         When("모든 형식이 올바르다면") {
-            val rightDto = UserDtoRequest(null, "test@test.com", "Password!123", "name", "01012341234")
+            val rightDto = UserDtoRequest("test@test.com", "Password!123", "name", "01012341234")
             val result: Set<ConstraintViolation<UserDtoRequest>> = validator.validate(rightDto)
             result.isEmpty() shouldBe true
         }
 
 
         When("이메일 형식이 올바르지 않다면") {
-            val emailDto = UserDtoRequest(null, "test", "Password!123", "name", "01012341234")
+            val emailDto = UserDtoRequest("test", "Password!123", "name", "01012341234")
             Then("예외가 발생한다.") {
                 val result: Set<ConstraintViolation<UserDtoRequest>> = validator.validate(emailDto)
                 result.size shouldBe 1
@@ -38,7 +38,7 @@ class UserDtoTest : BehaviorSpec({
         }
 
         When("비밀번호 형식이 올바르지 않다면") {
-            val passwordDto = UserDtoRequest(null, "test@test.com", "Password", "name", "01012341234")
+            val passwordDto = UserDtoRequest("test@test.com", "Password", "name", "01012341234")
             Then("예외가 발생한다.") {
                 val result: Set<ConstraintViolation<UserDtoRequest>> = validator.validate(passwordDto)
                 result.size shouldBe 1
@@ -47,7 +47,7 @@ class UserDtoTest : BehaviorSpec({
         }
 
         When("전화 번호가 11자리가 아니라면") {
-            val phone_number_size_Dto = UserDtoRequest(null, "test@test.com", "Password!123", "name", "0111")
+            val phone_number_size_Dto = UserDtoRequest("test@test.com", "Password!123", "name", "0111")
             Then("예외가 발생한다.") {
                 val result: Set<ConstraintViolation<UserDtoRequest>> = validator.validate(phone_number_size_Dto)
                 result.size shouldBe 1
@@ -56,7 +56,7 @@ class UserDtoTest : BehaviorSpec({
         }
 
         When("전화번호 형식이 올바르지 않다면") {
-            val valid_phone_number_Dto = UserDtoRequest(null, "test@test.com", "Password!123", "name", "11384728592")
+            val valid_phone_number_Dto = UserDtoRequest("test@test.com", "Password!123", "name", "11384728592")
             Then("예외가 발생한다.") {
                 val result: Set<ConstraintViolation<UserDtoRequest>> = validator.validate(valid_phone_number_Dto)
                 result.size shouldBe 1

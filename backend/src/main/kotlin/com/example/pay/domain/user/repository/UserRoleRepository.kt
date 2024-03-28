@@ -1,4 +1,7 @@
 package com.example.pay.domain.user.repository
 
-interface UserRoleRepository {
+import com.example.pay.domain.user.entity.UserRole
+import org.springframework.data.jpa.repository.JpaRepository
+
+interface UserRoleRepository : JpaRepository<UserRole, Long> {
 }

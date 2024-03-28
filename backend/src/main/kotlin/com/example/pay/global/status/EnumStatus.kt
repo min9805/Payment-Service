@@ -1,8 +1,9 @@
 package com.example.pay.global.status
 
-enum class Gender(val desc: String) {
-    MAN("남"),
-    WOMAN("여")
+enum class UserType(val desc: String) {
+    NORMAL("일반"),
+    POORLY_FED_CHILD("결식아동"),
+    NATIONAL_MERIT("국가유공자")
 }
 
 enum class ResultCode(val msg: String) {
@@ -10,13 +11,13 @@ enum class ResultCode(val msg: String) {
     ERROR("에러가 발생했습니다.")
 }
 
-enum class ROLE {
+enum class Role {
     MEMBER
 }
 
-enum class Category {
-    SCHOOL,
-    SPORT,
-    STUDY,
-    DAILY
+enum class Status(val desc: String) {
+    NORMAL("일반"),
+    DELETED("삭제"),
+    INACTIVE("비활성화"),
+    TEMPORARY_DELETED("임시삭제")
 }

@@ -8,12 +8,13 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(
-    uniqueConstraints = [UniqueConstraint(name = "uk_user_email", columnNames = ["email"])]
+    name = "USERS",
+    uniqueConstraints = [UniqueConstraint(name = "uk_users_email", columnNames = ["email"])]
 )
-class UserEntity(
+class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    var userId: Long? = null,
 
     @Column(nullable = false, length = 30)
     val email: String,
@@ -29,21 +30,18 @@ class UserEntity(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    val type: UserType,
+    val userType: UserType? = null,
+
+    @Column(nullable = false)
+    val createdDate: LocalDateTime? = null,
+
+    @Column(nullable = false)
+    val modifiedDate: LocalDateTime? = null,
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    val role: Role,
-
-    @Column(nullable = false)
-    val createdDate: LocalDateTime,
-
-
-    @Column(nullable = false)
-    val modifiedDate: LocalDateTime,
-
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    val status: Status,
-)
+    val status: Status? = null,
+) {
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    val userRole: List<UserRole>? = null
+}
