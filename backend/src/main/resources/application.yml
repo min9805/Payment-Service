@@ -21,6 +21,10 @@ spring:
         show_sql: false
         format_sql: true
         highlight_sql: true
+  messages:
+    basename: messages
+    fallback-to-system-locale: false
+    
 logging:
   pattern:
     console: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
@@ -29,6 +33,8 @@ logging:
       hibernate:
         SQL: debug
         type.descriptor.sql: trace
+
+
 
 jwt:
   secretKey: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb

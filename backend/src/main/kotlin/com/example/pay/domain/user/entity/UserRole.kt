@@ -1,5 +1,6 @@
 package com.example.pay.domain.user.entity
 
+import com.example.pay.global.dto.BaseEntity
 import com.example.pay.global.status.Role
 import com.example.pay.global.status.Status
 import jakarta.persistence.*
@@ -19,14 +20,4 @@ class UserRole(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = ForeignKey(name = "fk_user_roles_id"))
     val user: User,
-
-    @Column(nullable = false)
-    val createdDate: LocalDateTime,
-
-    @Column(nullable = false)
-    val modifiedDate: LocalDateTime,
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    val status: Status,
-) {}
+) : BaseEntity() {}

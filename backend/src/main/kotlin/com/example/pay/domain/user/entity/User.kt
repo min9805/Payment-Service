@@ -1,9 +1,11 @@
 package com.example.pay.domain.user.entity
 
-import com.example.pay.global.status.Role
+import com.example.pay.domain.user.dto.UserUpdateReqDto
+import com.example.pay.global.dto.BaseEntity
 import com.example.pay.global.status.Status
 import com.example.pay.global.status.UserType
 import jakarta.persistence.*
+import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
 @Entity
@@ -23,31 +25,39 @@ class User(
     val email: String = "",
 
     @Column(nullable = false, length = 100)
-    val password: String = "",
+    var password: String = "",
 
     @Column(nullable = false, length = 10)
     val name: String = "",
 
     @Column(nullable = false, length = 10)
-    val nickname: String = "",
+    var nickname: String = "",
 
     @Column(nullable = false, length = 11)
-    val phone: String = "",
+    var phone: String = "",
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
+    var profileImg: String = "",
+
+    @Column(nullable = false, length = 255)
+    var description: String = "",
+
+    @Column()
     @Enumerated(EnumType.STRING)
-    val userType: UserType? = null,
-
-    @Column(nullable = false)
-    val createdDate: LocalDateTime? = null,
-
-    @Column(nullable = false)
-    val modifiedDate: LocalDateTime? = null,
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    val status: Status? = null,
-) {
+    var userType: UserType? = null,
+) : BaseEntity() {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     val userRole: List<UserRole>? = null
+
+    fun encodePassword(passwordEncoder: PasswordEncoder) {
+        password = passwordEncoder.encode(password)
+    }
+
+    fun update(userUpdateReqDto: UserUpdateReqDto) {
+        userUpdateReqDto.password?.let { password = it }
+        userUpdateReqDto.nickname?.let { nickname = it }
+        userUpdateReqDto.phone?.let { phone = it }
+        userUpdateReqDto.profileImg?.let { profileImg = it }
+        userUpdateReqDto.description?.let { description = it }
+    }
 }
