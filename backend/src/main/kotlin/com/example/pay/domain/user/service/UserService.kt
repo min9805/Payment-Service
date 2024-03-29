@@ -104,6 +104,12 @@ class UserService(
         return true
     }
 
+    /**
+     * Email password 를 통해 로그인 시 Authenticate 진행
+     *
+     * @param loginReqDto
+     * @return jwt Token
+     */
     @Transactional
     fun login(loginReqDto: LoginReqDto): TokenInfo {
         val authenticationToken = UsernamePasswordAuthenticationToken(loginReqDto.email, loginReqDto.password)
