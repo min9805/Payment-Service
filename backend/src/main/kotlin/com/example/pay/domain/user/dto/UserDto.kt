@@ -88,23 +88,23 @@ class UserUpdateReqDto(
         message = "영문, 숫자, 특수문자를 포함한 8~20자리로 입력해주세요"
     )
     @JsonProperty("password")
-    private val _password: String?,
+    private val _password: String? = null,
 
     @JsonProperty("nickname")
-    private val _nickname: String?,
+    private val _nickname: String? = null,
 
     @field:Pattern(
         regexp = "^01\\d{9}$",
         message = "핸드폰 번호를 다시 확인해주세요"
     )
     @JsonProperty("phone")
-    private val _phone: String?,
+    private val _phone: String? = null,
 
     @JsonProperty("profileImg")
-    private val _profileImg: String?,
+    private val _profileImg: String? = null,
 
     @JsonProperty("description")
-    private val _description: String?,
+    private val _description: String? = null,
 
     ) {
 
