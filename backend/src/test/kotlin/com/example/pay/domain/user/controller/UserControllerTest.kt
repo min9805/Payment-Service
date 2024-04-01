@@ -1,38 +1,37 @@
 package com.example.pay.domain.user.controller
 
 import com.example.pay.domain.user.dto.LoginReqDto
-import com.example.pay.domain.user.entity.User
-import com.example.pay.domain.user.repository.UserRepository
 import com.example.pay.domain.user.service.UserService
+import com.example.pay.global.authority.TokenInfo
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.extensions.spring.SpringExtension
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.post
 
-@WebMvcTest(controllers = [UserController::class])
-@ContextConfiguration(classes = [UserController::class, UserService::class, UserRepository::class])
-class UserControllerTest() : BehaviorSpec() {
-    @Autowired
-    private lateinit var mockMvc: MockMvc
 
-    @Autowired
-    private lateinit var userRepository: UserRepository
+@WebMvcTest(UserController::class)
+@AutoConfigureMockMvc
+class UserControllerTest(
+    @Autowired val mockMvc: MockMvc
+) : BehaviorSpec() {
+
+    @MockBean
+    lateinit var jpaMetamodelMappingContext: JpaMetamodelMappingContext
+
+    @MockBean
+    lateinit var userService: UserService
 
     init {
-        extension(SpringExtension)
-
-        beforeTest {
-            userRepository.save(
-                User(
-                    1L, "test@email.com", "password123",
-                    "test", "test", "01012345678",
-                    "", "", null
-                )
-            )
-        }
 
         given("회원가입") {
             `when`("회원가입 요청이 들어올 때") {
@@ -45,8 +44,17 @@ class UserControllerTest() : BehaviorSpec() {
         given("로그인") {
             `when`("로그인 요청이 들어올 때") {
                 val loginReqDto = LoginReqDto("test@email.com", "password123")
+
                 then("로그인이 성공해야 한다") {
-                    assertTrue(true)
+                    every { userService.login(loginReqDto) } returns TokenInfo("grant", "accessToken")
+
+                    mockMvc.post("/api/user/login") {
+                        contentType = MediaType.APPLICATION_JSON
+                        content = ObjectMapper().writeValueAsString(loginReqDto)
+                    }.andExpect {
+                        status { isOk() }
+                    }
+
                 }
             }
         }

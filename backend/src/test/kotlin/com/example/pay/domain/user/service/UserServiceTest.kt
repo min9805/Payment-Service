@@ -8,64 +8,61 @@ import com.example.pay.domain.user.repository.UserRepository
 import com.example.pay.domain.user.repository.UserRoleRepository
 import com.example.pay.global.authority.JwtTokenProvider
 import com.example.pay.global.authority.TokenInfo
+import com.example.pay.global.dto.CustomUser
 import com.example.pay.global.exception.InvalidInputException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.mockk
+import io.mockk.spyk
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.MessageSource
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.ObjectPostProcessor
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 
 
-@SpringBootTest()
+var userRepository: UserRepository = mockk()
+var userRoleRepository: UserRoleRepository = mockk()
+var jwtTokenProvider: JwtTokenProvider = mockk()
+var messageSource: MessageSource = mockk()
+var passwordEncoder: PasswordEncoder = mockk()
+var authenticationManagerBuilder: AuthenticationManagerBuilder = mockk()
+
+var target = UserService(
+    userRepository,
+    userRoleRepository,
+    authenticationManagerBuilder,
+    jwtTokenProvider,
+    messageSource,
+    passwordEncoder
+)
+
 class UserServiceTest : BehaviorSpec() {
-    final var userRepository: UserRepository = mockk()
-    final var userRoleRepository: UserRoleRepository = mockk()
-
-
-    @MockBean
-    lateinit var jwtTokenProvider: JwtTokenProvider
-
-    @MockBean
-    lateinit var messageSource: MessageSource
-
-    @MockBean
-    lateinit var passwordEncoder: PasswordEncoder
-
-    @MockBean
-    lateinit var authenticationManagerBuilder: AuthenticationManagerBuilder
-
-    @Autowired
-    lateinit var target: UserService
 
     init {
+        // Mocking dependencies
+        val authentication = mockk<Authentication>()
+        val securityContext = mockk<SecurityContext>()
+        val user = mockk<User>()
 
-//        beforeSpec {
-////            val opp: ObjectPostProcessor<Any> = mockk()
-////            val builder = AuthenticationManagerBuilder(opp)
-////            authenticationManagerBuilder = builder
-//
-//            target = UserService(
-//                userRepository,
-//                userRoleRepository,
-//                authenticationManagerBuilder,
-//                jwtTokenProvider,
-//                messageSource,
-//                passwordEncoder
-////            )
-//        }
+        beforeTest {
+            // Setting up mock authentication
+            SecurityContextHolder.setContext(securityContext)
+        }
 
         afterContainer {
             clearAllMocks()
@@ -120,6 +117,7 @@ class UserServiceTest : BehaviorSpec() {
                 every { userRepository.findByNickname(userSignupReqDto.nickname) } returns null
                 every { userRepository.save(any()) } answers { firstArg() }
                 every { userRoleRepository.save(any()) } answers { firstArg() }
+                every { passwordEncoder.encode(any()) } answers { "encodedPassword" }
 
                 val result = target.signUp(userSignupReqDto)
 
@@ -166,19 +164,45 @@ class UserServiceTest : BehaviorSpec() {
 
 
         given("회원 정보 수정 시") {
+            every { authentication.principal } returns CustomUser(1L, "test@email.com", "password123", listOf())
+            every { securityContext.authentication } returns authentication
+
+            When("비밀번호 변경 시") {
+                every { userRepository.findByIdOrNull(1L) } returns spyk(User())
+                every { userRepository.findByEmail(any()) } returns null
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                then("정상적으로 비밀번호가 변경된다") {
+                    val updateReqDto = UserUpdateReqDto(_password = "newPassword")
+                    val result = target.updateUserInfo(userUpdateReqDto)
+                    result shouldBe Update_msg_success
+                }
+            }
+
+            When("닉네임 변경 시") {
+                every { userRepository.findByNickname(any()) } returns null
+                every { userRepository.findByIdOrNull(1L) } returns spyk(User())
+                every { userRepository.findByEmail(any()) } returns null
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                then("정상적으로 닉네임이 변경된다") {
+                    val updateReqDto = UserUpdateReqDto(_nickname = "newNickname")
+                    val result = target.updateUserInfo(userUpdateReqDto)
+                    result shouldBe Update_msg_success
+                }
+            }
             `when`("닉네임 변경 시 중복되었다면") {
 
-                val loginReqDto = LoginReqDto("test@example.com", "password")
+                val updateReqDto = UserUpdateReqDto(_nickname = "duplicatedNickname")
+                every { userRepository.findByNickname("duplicatedNickname") } returns mockk<User>()
+                every { userRepository.findByIdOrNull(1L) } returns spyk(User())
+                every { userRepository.findByEmail(any()) } returns null
+                every { userRepository.save(any()) } answers { firstArg() }
 
-                // 사용자 정보 로드 모의 처리
-                every { authenticationManagerBuilder.`object`.authenticate(any()) } returns mockk<Authentication>()
-                every { userRepository.findByEmail("test@example.com") } returns mockk<User>()
-
-                then("Exception 을 발생한다") {
-
-                    val result = target.updateUserInfo(userUpdateReqDto)
-
-                    result shouldBe Update_msg_success
+                then("InvalidInputException 이 발생한다") {
+                    shouldThrow<InvalidInputException> {
+                        target.updateUserInfo(userUpdateReqDto)
+                    }
 
                 }
             }

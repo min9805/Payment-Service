@@ -27,9 +27,9 @@ dependencies {
 
     //Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.mockk:mockk:1.9.3")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.5.4")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.5.4")
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.1")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.8.1")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
 
     //Security, JWT

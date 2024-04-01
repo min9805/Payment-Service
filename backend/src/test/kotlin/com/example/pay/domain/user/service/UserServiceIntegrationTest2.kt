@@ -24,22 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder
 
 @SpringBootTest
 class UserServiceIntegrationTest2 : BehaviorSpec() {
-
-    private var userRepository: UserRepository = mockk()
-
-    private var userRoleRepository: UserRoleRepository = mockk()
+    @Autowired
+    private lateinit var userRepository: UserRepository
 
     @Autowired
-    lateinit var authenticationManagerBuilder: AuthenticationManagerBuilder
-
-    @Autowired
-    lateinit var passwordEncoder: PasswordEncoder
-
-    @Autowired
-    lateinit var jwtTokenProvider: JwtTokenProvider
-
-    @Autowired
-    lateinit var messageSource: MessageSource
+    private lateinit var passwordEncoder: PasswordEncoder
 
     @Autowired
     private lateinit var userService: UserService
@@ -47,11 +36,22 @@ class UserServiceIntegrationTest2 : BehaviorSpec() {
     init {
         extension(SpringExtension)
 
-        given("로그인 실패") {
-            val userId = 1L
-            val expectedUser = User(userId, "test@test.com", passwordEncoder.encode("password123"))
-            expectedUser.userRole = listOf(UserRole(1L, Role.MEMBER, expectedUser))
+        beforeSpec {
+            userRepository.deleteAllInBatch()
 
+            userRepository.save(
+                User(
+                    1L,
+                    "test@test.com",
+                    passwordEncoder.encode("password123"),
+                    "John Doe",
+                    "Johnnn",
+                    "01012345678"
+                )
+            )
+        }
+
+        given("로그인 실패") {
             `when`("사용자가 올바르지 않은 비밀번호로 로그인 시도할 때") {
                 val loginReqDto = LoginReqDto("test@test.com", "wrong_password")
 
@@ -62,7 +62,6 @@ class UserServiceIntegrationTest2 : BehaviorSpec() {
                 }
             }
             `when`("사용자가 올바른 비밀번호로 로그인 시도 시") {
-                every { userRepository.findByEmail(any()) } returns User(2L)
                 val loginReqDto = LoginReqDto("test@test.com", "password123")
 
                 then("로그인이 성공해야 함") {
