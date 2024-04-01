@@ -46,8 +46,8 @@ class User(
     @Enumerated(EnumType.STRING)
     var userType: UserType? = null,
 ) : BaseEntity() {
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
-    val userRole: List<UserRole>? = null
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", targetEntity = UserRole::class)
+    var userRole: List<UserRole>? = null
 
     fun encodePassword(passwordEncoder: PasswordEncoder) {
         password = passwordEncoder.encode(password)

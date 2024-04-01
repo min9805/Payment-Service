@@ -45,23 +45,25 @@ class UserService(
     @Transactional
     fun signUp(userSignupReqDto: UserSignupReqDto): String {
         // 이메일 중복 여부 검사
-        var user: User? = userRepository.findByEmail(userSignupReqDto.email)
-        if (user != null) {
+        val emailDuplicateCheck = emailCheck(userSignupReqDto.email)
+        if (!emailDuplicateCheck) {
             throw InvalidInputException(
                 "email",
                 messageSource.getMessage("user.service.signup.fail.existEmail", null, Locale.getDefault())
             )
         }
+
         // 닉네임 중복 여부 검사
-        user = userRepository.findByNickname(userSignupReqDto.nickname)
-        if (user != null) {
+        val nicknameDuplicateCheck = nicknameCheck(userSignupReqDto.nickname)
+        if (!nicknameDuplicateCheck) {
             throw InvalidInputException(
                 "nickname",
                 messageSource.getMessage("user.service.signup.fail.existNickname", null, Locale.getDefault())
             )
         }
 
-        user = userSignupReqDto.toEntity()
+        // 회원 정보 저장
+        val user = userSignupReqDto.toEntity()
         user.encodePassword(passwordEncoder)
 
         val savedUser = userRepository.save(user)
@@ -139,8 +141,8 @@ class UserService(
         user.update(userUpdateReqDto)
 
         // 닉네임 중복 체크
-        val checkedUser: User? = userUpdateReqDto.nickname?.let { userRepository.findByNickname(it) }
-        if (checkedUser != null) {
+        val nicknameDuplicateCheck = userUpdateReqDto.nickname?.let { nicknameCheck(it) }
+        if (nicknameDuplicateCheck != null && !nicknameDuplicateCheck) {
             throw InvalidInputException(
                 "nickname",
                 messageSource.getMessage("user.service.signup.fail.existNickname", null, Locale.getDefault())

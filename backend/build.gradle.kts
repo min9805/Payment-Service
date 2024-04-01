@@ -23,13 +23,14 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    runtimeOnly("mysql:mysql-connector-java:8.0.32")
+    runtimeOnly("mysql:mysql-connector-java:8.0.28")
 
     //Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:5.5.4")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.5.4")
+    testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
 
     //Security, JWT
     implementation("org.springframework.boot:spring-boot-starter-validation")
